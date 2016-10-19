@@ -1,0 +1,17 @@
+{
+  "name": "csv-grid",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Matthew Vilhauer",
+  "license": "ISC",
+  "dependencies": {
+    "ag-grid": "^6.2.1",
+    "csv": "^1.1.0",
+    "express": "^4.14.0",
+    "nodemon": "^1.11.0"
+  }
+}
