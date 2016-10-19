@@ -10,6 +10,7 @@ app.use(express.static(__dirname + '/public'));
 app.use('/public', express.static('public'));
 app.use('/styles', express.static('styles'));
 app.use('/scripts', express.static('scripts'));
+app.use('/lib', express.static('lib'));
 
 /**********
  * ROUTES *

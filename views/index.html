@@ -16,9 +16,7 @@
       integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
       crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-
-    <!--APPLICATION SCRIPTS-->
-    <script src="scripts/app.js"></script>
+    <script src="../lib/ag-grid.js"></script>
 
   </head>
 <body>
@@ -26,5 +24,11 @@
     <h1 class="display-3">CSV Uploader with ag-Grid</h1>
     <p class="lead">This is a simple app that allows you to upload a csv and display the results using ag-Grid.</p>
   </div>
+  <div id="ag-grid-container" class="col-sm-12">
+    <div id="ag-grid" class="ag-fresh"></div>
+  </div>
+
+  <!--APPLICATION SCRIPTS-->
+  <script src="scripts/app.js"></script>
 </body>
 </html>
