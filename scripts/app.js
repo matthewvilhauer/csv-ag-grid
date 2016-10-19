@@ -1,4 +1,4 @@
-
+$( document ).ready(function() {
 
     // this example has items declared globally. bad javascript. but keeps the example simple.
     var columnDefs = [
@@ -20,7 +20,7 @@
 
     // wait for the document to be loaded, otherwise
     // ag-Grid will not find the div in the document.
-    document.addEventListener("DOMContentLoaded", function() {
-        var eGridDiv = document.querySelector('#ag-grid');
-        new agGrid.Grid(eGridDiv, gridOptions);
-    });
+    var eGridDiv = document.querySelector('#ag-grid');
+    new agGrid.Grid(eGridDiv, gridOptions);
+
+});
