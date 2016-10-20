@@ -1,6 +1,6 @@
 .jumbotron {
     padding: 10px;
 }
-tr, td {
-    border: 1px solid black;
+#ag-grid {
+    height:300px;
 }
