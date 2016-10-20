@@ -31,10 +31,13 @@
           <legend>Upload your CSV File</legend>
           <input type="file" name="File Upload" id="txtFileUpload" accept=".csv" />
         </fieldset>
+        <div id="clear-data" class="btn btn-danger">Clear Data</div>
       </div>
     </div>
-    <div id="ag-grid-header"></div>
-    <div id="ag-grid" class="ag-fresh"></div>
+    <div id="ag-grid-container">
+        <div id="ag-grid-header"></div>
+        <div id="ag-grid" class="ag-fresh"></div>
+    </div>
     <!--APPLICATION SCRIPTS-->
     <script src="scripts/app.js"></script>
   </body>
