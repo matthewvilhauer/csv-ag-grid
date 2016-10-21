@@ -58,7 +58,6 @@ $( document ).ready(function() {
 
     //Method to clear the contents of the grid and its header
     function removeOldAgGrid() {
-        $("#ag-grid-header").html('');
         $("#ag-grid").html('');
     }
 
@@ -67,6 +66,7 @@ $( document ).ready(function() {
         localStorage.removeItem("displaydata");
         $("#txtFileUpload").val('');
         $("#clear-data").hide();
+        $("#ag-grid-header").html('');
         removeOldAgGrid();
     }
 
@@ -93,8 +93,12 @@ $( document ).ready(function() {
         }
         var gridOptions = {
             columnDefs: columnDefs,
-            rowData: rowData
+            rowData: rowData,
+            enableColResize: true,
+            enableFilter: true,
+            enableSorting: true
         };
+
         var eGridDiv = document.querySelector('#ag-grid');
         new agGrid.Grid(eGridDiv, gridOptions);
     }
