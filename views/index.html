@@ -27,17 +27,15 @@
       <p class="lead">This is a simple app that allows you to upload a csv and display the results using ag-Grid.</p>
     </div>
     <div class="row">
-      <div class="fileupload col-sm-4 col-sm-offset-4">
+      <div id="file-upload-container" class="col-sm-4 col-sm-offset-4">
         <fieldset>
           <legend>Upload your CSV File</legend>
           <input type="file" name="File Upload" id="txtFileUpload" accept=".csv" />
         </fieldset>
-        <div id="clear-data" class="btn btn-danger">Clear Data</div>
       </div>
     </div>
     <div id="ag-grid-container">
         <div id="ag-grid-header"></div>
-        <button id="export">Export to CSV</button>
         <div id="ag-grid" class="ag-fresh"></div>
     </div>
   </body>
