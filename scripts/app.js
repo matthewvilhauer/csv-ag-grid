@@ -4,7 +4,6 @@ $( document ).ready(function() {
 
     // Event listeners for the file upload and clear data button
     document.getElementById('txtFileUpload').addEventListener('change', upload, false);
-    document.getElementById('clear-data').addEventListener('click', clearData, false);
 
     // Method that checks that the browser supports the HTML5 File API
     function browserSupportFileUpload() {
@@ -44,7 +43,8 @@ $( document ).ready(function() {
     function displayLocalData() {
         var csvData = JSON.parse(localStorage.getItem("displaydata"));
         var filename = localStorage.getItem("currentfile");
-        $("#clear-data").show();
+        $("#file-upload-container").append('<div id="clear-data" class="btn btn-danger">Clear Data</div>');
+        document.getElementById('clear-data').addEventListener('click', clearData, false);
         $("#ag-grid-header").html('<h3>Upload Results for '+filename+'</h3>');
         removeOldAgGrid();
         addNewAgGrid(csvData);
@@ -60,6 +60,7 @@ $( document ).ready(function() {
         localStorage.removeItem("displaydata");
         $("#txtFileUpload").val('');
         $("#clear-data").hide();
+        $("#export").hide();
         $("#ag-grid-header").html('');
         removeOldAgGrid();
     }
@@ -73,7 +74,9 @@ $( document ).ready(function() {
             var header = data[0][i];
             columnDefs.push({
                 headerName: header,
-                field: header.toLowerCase()
+                field: header.toLowerCase(),
+                editable: true,
+                cellEditor: 'text'
             });
         }
         for (var i = 1; i < data.length; i++) {
@@ -103,6 +106,7 @@ $( document ).ready(function() {
         new agGrid.Grid(eGridDiv, gridOptions);
         //Add the row data to the grid
         gridOptions.api.setRowData(rowData);
+        $("#ag-grid-header").append('<button id="export">Export to CSV</button>');
         document.getElementById('export').addEventListener('click', onBtExport, false);
     }
 
@@ -110,5 +114,6 @@ $( document ).ready(function() {
         displayLocalData();
     } else {
         $("#clear-data").hide();
+        $("#export").hide();
     }
 });
