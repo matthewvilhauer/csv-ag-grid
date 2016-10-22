@@ -6,12 +6,6 @@ $( document ).ready(function() {
     document.getElementById('txtFileUpload').addEventListener('change', upload, false);
     document.getElementById('clear-data').addEventListener('click', clearData, false);
 
-    if (localStorage.getItem("displaydata")) {
-        displayLocalData();
-    } else {
-        $("#clear-data").hide();
-    }
-
     // Method that checks that the browser supports the HTML5 File API
     function browserSupportFileUpload() {
         var isCompatible = false;
@@ -91,15 +85,30 @@ $( document ).ready(function() {
             }
             rowData.push(rowObject);
         }
+
         var gridOptions = {
             columnDefs: columnDefs,
-            rowData: rowData,
             enableColResize: true,
             enableFilter: true,
             enableSorting: true
         };
-
+        var onBtExport = function() {
+            var exportParams = {
+                fileName: document.querySelector('#txtFileUpload').value
+            };
+            gridOptions.api.exportDataAsCsv(exportParams);
+        };
+        //Add ag-Grid to the page with the defined grid options
         var eGridDiv = document.querySelector('#ag-grid');
         new agGrid.Grid(eGridDiv, gridOptions);
+        //Add the row data to the grid
+        gridOptions.api.setRowData(rowData);
+        document.getElementById('export').addEventListener('click', onBtExport, false);
+    }
+
+    if (localStorage.getItem("displaydata")) {
+        displayLocalData();
+    } else {
+        $("#clear-data").hide();
     }
 });
