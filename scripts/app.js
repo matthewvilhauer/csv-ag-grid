@@ -1,6 +1,18 @@
 $( document ).ready(function() {
 
-    var eGridDiv = document.querySelector('#ag-grid');
+    //Method for formatting time
+    var formatDate = function(time) {
+        var am_or_pm = "am";
+        var hours = time.getHours();
+        if (hours > 12) {
+            hours = hours - 12;
+            am_or_pm = "pm";
+        } else if(hours = 12) {
+            am_or_pm = "pm";
+        }
+        return ("0" + time.getHours()).slice(-2) + ":" + ("0" + time.getMinutes()).slice(-2) + am_or_pm + " " +
+            ("0"+(time.getMonth()+1)).slice(-2) + "-" + ("0" + time.getDate()).slice(-2) + "-" + ("0" + time.getFullYear()).slice(-2);
+    };
 
     // Event listeners for the file upload and clear data button
     document.getElementById('txtFileUpload').addEventListener('change', upload, false);
@@ -34,8 +46,8 @@ $( document ).ready(function() {
             reader.onload = function(event) {
                 var csvData = event.target.result;
                 data = $.csv.toArrays(csvData);
-                var uploadTime = new Date().getTime();
-                saveUpload(filename, data, uploadTime);
+                var createdDate = new Date();
+                saveUpload(filename, data, createdDate);
                 displayLocalData();
             };
             reader.onerror = function() {
@@ -48,8 +60,10 @@ $( document ).ready(function() {
         var upload = {
             key: filename+"_"+timestamp,
             filename: filename,
-            data: data
+            data: data,
+            creation_date: formatDate(timestamp)
         };
+
         if (localStorage.getItem('uploads')) {
             var UploadList = JSON.parse(localStorage.getItem('uploads'));
         } else {
@@ -87,8 +101,9 @@ $( document ).ready(function() {
         if (localStorage.getItem('uploads')) {
             for (var i = 0; i < files.length; i++) {
                 var filename = files[i].filename;
-                var filekey = files[i].key
-                $("#file-list").append('<tr><td id="'+filekey+'"><a>' + filename + '</a></td></tr>');
+                var filekey = files[i].key;
+
+                $("#file-list").append('<tr><td id="'+filekey+'"><a>' + filename + '</a></td><td class="file-date">'+files[i].creation_date+'</td></tr>');
                 document.getElementById(filekey).addEventListener('click', displaySelectedData, false);
             }
         }
@@ -113,7 +128,7 @@ $( document ).ready(function() {
         document.getElementById('clear-data').addEventListener('click', clearDisplayData, false);
         $("#ag-grid-header").html('<h3>Upload Results for '+filename+'</h3>');
         removeOldAgGrid();
-        addNewAgGrid(csvData);
+        addAgGrid(csvData);
     }
     //Method to clear localStorage and the file upload value, remove the ag-Grid, and hide the clear data button
     function clearDisplayData() {
@@ -129,7 +144,7 @@ $( document ).ready(function() {
         $("#ag-grid").html('');
     }
     //Method to add an ag-Grid to the page
-    function addNewAgGrid(data) {
+    function addAgGrid(data) {
         var columnDefs = [];
         var rowData = [];
 
