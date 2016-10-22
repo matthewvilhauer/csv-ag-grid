@@ -70,6 +70,19 @@ $( document ).ready(function() {
         var columnDefs = [];
         var rowData = [];
 
+        var createImageSpan = function(image) {
+            var resultElement = document.createElement("span");
+                var imageElement = document.createElement("img");
+                imageElement.src = 'http://icons.iconarchive.com/icons/paomedia/small-n-flat/32/sign-check-icon.png';
+                resultElement.appendChild(imageElement);
+            return resultElement;
+        };
+
+        var daysSunshineRenderer = function(params) {
+            var daysSunshine = params.value / 24;
+            return createImageSpan(daysSunshine, params.rendererImage);
+        };
+
         for (var i = 0; i < data[0].length; i++) {
             var header = data[0][i];
             columnDefs.push({
@@ -79,6 +92,14 @@ $( document ).ready(function() {
                 cellEditor: 'text'
             });
         }
+        columnDefs.push({
+            headerName: 'Picture',
+            field: header.toLowerCase(),
+            cellRenderer: daysSunshineRenderer,
+            cellRendererParams: {
+                rendererImage: 'http://eadb.org/wp-content/uploads/2015/08/profile-placeholder.jpg'
+            }
+        });
         for (var i = 1; i < data.length; i++) {
             var rowObject = {};
 
@@ -93,7 +114,8 @@ $( document ).ready(function() {
             columnDefs: columnDefs,
             enableColResize: true,
             enableFilter: true,
-            enableSorting: true
+            enableSorting: true,
+            rowHeight: 35
         };
         var onBtExport = function() {
             var exportParams = {
