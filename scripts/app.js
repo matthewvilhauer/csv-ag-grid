@@ -4,6 +4,7 @@ $( document ).ready(function() {
 
     // Event listeners for the file upload and clear data button
     document.getElementById('txtFileUpload').addEventListener('change', upload, false);
+    document.getElementById('clear-uploads').addEventListener('click', clearUploads, false);
 
     // Method that checks that the browser supports the HTML5 File API
     function browserSupportFileUpload() {
@@ -13,6 +14,44 @@ $( document ).ready(function() {
             isCompatible = true;
         }
         return isCompatible;
+    }
+
+    function saveUpload(filename, data, timestamp) {
+        var upload = {
+            key: filename+"_"+timestamp,
+            filename: filename,
+            data: data
+        };
+        if (localStorage.getItem('uploads')) {
+            var UploadList = JSON.parse(localStorage.getItem('uploads'));
+        } else {
+            var UploadList = [];
+        }
+        console.log(UploadList);
+        UploadList.push(upload);
+        localStorage.setItem('uploads', JSON.stringify(UploadList));
+
+        localStorage.setItem("displaydata", JSON.stringify(data));
+        localStorage.setItem("currentfile", filename);
+        refreshFileList();
+    }
+
+    function refreshFileList() {
+        if (!localStorage.getItem('uploads')) {
+            $("#file-list").html('');
+        } else {
+            var files = JSON.parse(localStorage.getItem('uploads'));
+            $("#file-list").html('');
+            for (var i = 0; i < files.length; i++) {
+                $("#file-list").append('<tr><td>' + files[i].filename + '</td></tr>');
+            }
+        }
+    }
+
+    function clearUploads() {
+        localStorage.clear();
+        clearDisplayData();
+        refreshFileList();
     }
 
     // Method that reads and processes the selected file
@@ -29,8 +68,8 @@ $( document ).ready(function() {
             reader.onload = function(event) {
                 var csvData = event.target.result;
                 data = $.csv.toArrays(csvData);
-                localStorage.setItem("displaydata", JSON.stringify(data));
-                localStorage.setItem("currentfile", filename);
+                var uploadTime = new Date().getTime();
+                saveUpload(filename, data, uploadTime);
                 displayLocalData();
             };
             reader.onerror = function() {
@@ -43,8 +82,8 @@ $( document ).ready(function() {
     function displayLocalData() {
         var csvData = JSON.parse(localStorage.getItem("displaydata"));
         var filename = localStorage.getItem("currentfile");
-        $("#file-upload-container").append('<div id="clear-data" class="btn btn-danger">Clear Data</div>');
-        document.getElementById('clear-data').addEventListener('click', clearData, false);
+        $("#clear-data").show();
+        document.getElementById('clear-data').addEventListener('click', clearDisplayData, false);
         $("#ag-grid-header").html('<h3>Upload Results for '+filename+'</h3>');
         removeOldAgGrid();
         addNewAgGrid(csvData);
@@ -56,7 +95,7 @@ $( document ).ready(function() {
     }
 
     //Method to clear localStorage and the file upload value, remove the ag-Grid, and hide the clear data button
-    function clearData() {
+    function clearDisplayData() {
         localStorage.removeItem("displaydata");
         $("#txtFileUpload").val('');
         $("#clear-data").hide();
@@ -106,10 +145,11 @@ $( document ).ready(function() {
         new agGrid.Grid(eGridDiv, gridOptions);
         //Add the row data to the grid
         gridOptions.api.setRowData(rowData);
-        $("#ag-grid-header").append('<button id="export">Export to CSV</button>');
+        $("#ag-grid-header").append('<div id="export" class="btn btn-success">Export to CSV</div>');
         document.getElementById('export').addEventListener('click', onBtExport, false);
     }
 
+    refreshFileList();
     if (localStorage.getItem("displaydata")) {
         displayLocalData();
     } else {
