@@ -6,6 +6,11 @@ $( document ).ready(function() {
     document.getElementById('txtFileUpload').addEventListener('change', upload, false);
     document.getElementById('clear-uploads').addEventListener('click', clearUploads, false);
 
+/**
+ *
+ * UPLOAD METHODS
+ *
+ **/
     // Method that checks that the browser supports the HTML5 File API
     function browserSupportFileUpload() {
         var isCompatible = false;
@@ -15,45 +20,6 @@ $( document ).ready(function() {
         }
         return isCompatible;
     }
-
-    function saveUpload(filename, data, timestamp) {
-        var upload = {
-            key: filename+"_"+timestamp,
-            filename: filename,
-            data: data
-        };
-        if (localStorage.getItem('uploads')) {
-            var UploadList = JSON.parse(localStorage.getItem('uploads'));
-        } else {
-            var UploadList = [];
-        }
-        console.log(UploadList);
-        UploadList.push(upload);
-        localStorage.setItem('uploads', JSON.stringify(UploadList));
-
-        localStorage.setItem("displaydata", JSON.stringify(data));
-        localStorage.setItem("currentfile", filename);
-        refreshFileList();
-    }
-
-    function refreshFileList() {
-        if (!localStorage.getItem('uploads')) {
-            $("#file-list").html('');
-        } else {
-            var files = JSON.parse(localStorage.getItem('uploads'));
-            $("#file-list").html('');
-            for (var i = 0; i < files.length; i++) {
-                $("#file-list").append('<tr><td>' + files[i].filename + '</td></tr>');
-            }
-        }
-    }
-
-    function clearUploads() {
-        localStorage.clear();
-        clearDisplayData();
-        refreshFileList();
-    }
-
     // Method that reads and processes the selected file
     function upload(evt) {
         if (!browserSupportFileUpload()) {
@@ -77,7 +43,68 @@ $( document ).ready(function() {
             };
         }
     }
+    //Method that adds an uploaded file to localStorage and sets the displaydata and currentfile to the uploaded file
+    function saveUpload(filename, data, timestamp) {
+        var upload = {
+            key: filename+"_"+timestamp,
+            filename: filename,
+            data: data
+        };
+        if (localStorage.getItem('uploads')) {
+            var UploadList = JSON.parse(localStorage.getItem('uploads'));
+        } else {
+            var UploadList = [];
+        }
+        UploadList.push(upload);
+        localStorage.setItem('uploads', JSON.stringify(UploadList));
+        localStorage.setItem("displaydata", JSON.stringify(data));
+        localStorage.setItem("currentfile", filename);
+        renderFileList();
+    }
 
+/**
+ *
+ * FILE LIST METHODS
+ *
+ **/
+    //Method for rendering the file list to the page
+    function renderFileList() {
+        var files = JSON.parse(localStorage.getItem('uploads'));
+        var displaySelectedData = function() {
+            var key = this.id;
+            for (var i = 0; i < files.length; i++) {
+                if (files[i].key == key) {
+                    var selectedData = JSON.stringify(files[i].data);
+                    localStorage.setItem("currentfile", files[i].filename);
+                    localStorage.setItem("displaydata", selectedData);
+                    displayLocalData();
+                }
+            }
+        };
+        //Clear the old file list
+        $("#file-list").html('');
+        //If there are uploads in localstorage, add them to the file list
+        if (localStorage.getItem('uploads')) {
+            for (var i = 0; i < files.length; i++) {
+                var filename = files[i].filename;
+                var filekey = files[i].key
+                $("#file-list").append('<tr><td id="'+filekey+'"><a>' + filename + '</a></td></tr>');
+                document.getElementById(filekey).addEventListener('click', displaySelectedData, false);
+            }
+        }
+    }
+    //Method for removing all files from localStorage and clearing the table.
+    function clearUploads() {
+        localStorage.clear();
+        clearDisplayData();
+        renderFileList();
+    }
+
+/**
+ *
+ * AG-GRID DISPLAY METHODS
+ *
+ **/
     //Method for displaying an new ag-grid using the current localstorage data
     function displayLocalData() {
         var csvData = JSON.parse(localStorage.getItem("displaydata"));
@@ -88,12 +115,6 @@ $( document ).ready(function() {
         removeOldAgGrid();
         addNewAgGrid(csvData);
     }
-
-    //Method to clear the contents of the grid and its header
-    function removeOldAgGrid() {
-        $("#ag-grid").html('');
-    }
-
     //Method to clear localStorage and the file upload value, remove the ag-Grid, and hide the clear data button
     function clearDisplayData() {
         localStorage.removeItem("displaydata");
@@ -103,7 +124,10 @@ $( document ).ready(function() {
         $("#ag-grid-header").html('');
         removeOldAgGrid();
     }
-
+    //Method to clear the contents of the grid and its header
+    function removeOldAgGrid() {
+        $("#ag-grid").html('');
+    }
     //Method to add an ag-Grid to the page
     function addNewAgGrid(data) {
         var columnDefs = [];
@@ -149,7 +173,8 @@ $( document ).ready(function() {
         document.getElementById('export').addEventListener('click', onBtExport, false);
     }
 
-    refreshFileList();
+    renderFileList();
+
     if (localStorage.getItem("displaydata")) {
         displayLocalData();
     } else {
