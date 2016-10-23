@@ -27,25 +27,27 @@
 </head>
 <body>
     <div class="jumbotron">
-        <h1 class="display-3">CSV Uploader with ag-Grid</h1>
-        <p class="lead">This is a simple app that allows you to upload a csv and display the results using ag-Grid.</p>
+        <h1 class="display-3">CSV Editor with ag-Grid</h1>
+        <p class="lead">This is a simple app that allows you to upload a csv and transform, filter, edit, and download the results using ag-Grid.</p>
     </div>
     <div class="col-sm-3">
         <div id="file-list-container">
-            <h3>My Files</h3>
+            <div id="file-list-header">
+                <h3 class="my-files-header">My Files</h3>
+                <div id="clear-uploads" class="btn btn-danger btn-sm sidebar-header">Clear</div>
+            </div>
             <div id="file-list">
             </div>
-            <div id="clear-uploads" class="btn btn-danger">Clear Uploads</div>
         </div>
     </div>
     <div class="col-sm-9">
-        <div id="file-upload-container">
-            <fieldset>
-                <legend>Upload your CSV File</legend>
+        <div id="file-upload-container" class="col-sm-8 col-sm-offset-2">
+            <h3 class="upload">Upload your CSV File</h3>
+            <div class="upload">
                 <input type="file" name="File Upload" id="txtFileUpload" accept=".csv" />
-            </fieldset>
+            </div>
         </div>
-        <div id="ag-grid-container">
+        <div id="ag-grid-container" class="col-xs-12">
             <div id="ag-grid-header"></div>
             <div id="ag-grid" class="ag-fresh"></div>
         </div>

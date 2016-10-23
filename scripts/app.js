@@ -1,20 +1,6 @@
 $( document ).ready(function() {
 
-    //Method for formatting time
-    var formatDate = function(time) {
-        var am_or_pm = "am";
-        var hours = time.getHours();
-        if (hours > 12) {
-            hours = hours - 12;
-            am_or_pm = "pm";
-        } else if(hours = 12) {
-            am_or_pm = "pm";
-        }
-        return hours + ":" + ("0" + time.getMinutes()).slice(-2) + am_or_pm + " " +
-            ("0"+(time.getMonth()+1)).slice(-2) + "-" + ("0" + time.getDate()).slice(-2) + "-" + ("0" + time.getFullYear()).slice(-2);
-    };
-
-    // Event listeners for the file upload and clear data button
+    // Event listeners for the file upload and clear file list button
     document.getElementById('txtFileUpload').addEventListener('change', upload, false);
     document.getElementById('clear-uploads').addEventListener('click', clearUploads, false);
 
@@ -32,6 +18,7 @@ $( document ).ready(function() {
         }
         return isCompatible;
     }
+
     // Method that reads and processes the selected file
     function upload(evt) {
         if (!browserSupportFileUpload()) {
@@ -55,15 +42,15 @@ $( document ).ready(function() {
             };
         }
     }
+
     //Method that adds an uploaded file to localStorage and sets the displaydata and currentfile to the uploaded file
     function saveUpload(filename, data, timestamp) {
         var upload = {
             key: filename+"_"+timestamp,
             filename: filename,
             data: data,
-            creation_date: formatDate(timestamp)
+            lasteditdate: formatDate(timestamp)
         };
-
         if (localStorage.getItem('uploads')) {
             var UploadList = JSON.parse(localStorage.getItem('uploads'));
         } else {
@@ -73,8 +60,23 @@ $( document ).ready(function() {
         localStorage.setItem('uploads', JSON.stringify(UploadList));
         localStorage.setItem("displaydata", JSON.stringify(data));
         localStorage.setItem("currentfile", filename);
+        localStorage.setItem("currentkey", filename+"_"+timestamp);
         renderFileList();
     }
+
+    //Method for formatting time
+    function formatDate(time) {
+        var am_or_pm = "am";
+        var hours = time.getHours();
+        if (hours > 12) {
+            hours = hours - 12;
+            am_or_pm = "pm";
+        } else if(hours = 12) {
+            am_or_pm = "pm";
+        }
+        return hours + ":" + ("0" + time.getMinutes()).slice(-2) + am_or_pm + " " +
+            ("0"+(time.getMonth()+1)).slice(-2) + "-" + ("0" + time.getDate()).slice(-2) + "-" + ("0" + time.getFullYear()).slice(-2);
+    };
 
 /**
  *
@@ -102,12 +104,14 @@ $( document ).ready(function() {
             for (var i = 0; i < files.length; i++) {
                 var filename = files[i].filename;
                 var filekey = files[i].key;
+                var lasteditdate = files[i].lasteditdate;
 
-                $("#file-list").append('<div id="'+filekey+'" class="file"><a>' + filename + '</a></div><div class="file-date">Created: ' + files[i].creation_date + '</div>');
+                $("#file-list").append('<div id="'+filekey+'" class="file"><a>' + filename + '</a></div><div class="file-date">Last Update: ' + lasteditdate + '</div>');
                 document.getElementById(filekey).addEventListener('click', displaySelectedData, false);
             }
         }
     }
+
     //Method for removing all files from localStorage and clearing the table.
     function clearUploads() {
         localStorage.clear();
@@ -124,10 +128,10 @@ $( document ).ready(function() {
     function displayLocalData() {
         var csvData = JSON.parse(localStorage.getItem("displaydata"));
         var filename = localStorage.getItem("currentfile");
-        $("#ag-grid-header").html('<h3>Upload Results for '+filename+'</h3>');
         removeOldAgGrid();
         addAgGrid(csvData);
     }
+
     //Method to clear localStorage and the file upload value, remove the ag-Grid, and hide the clear data button
     function clearDisplayData() {
         localStorage.removeItem("displaydata");
@@ -137,15 +141,19 @@ $( document ).ready(function() {
         $("#ag-grid-header").html('');
         removeOldAgGrid();
     }
+
     //Method to clear the contents of the grid and its header
     function removeOldAgGrid() {
         $("#ag-grid").html('');
     }
+
     //Method to add an ag-Grid to the page
     function addAgGrid(data) {
         var columnDefs = [];
         var rowData = [];
-
+        var filename = localStorage.getItem("currentfile");
+        var filekey = localStorage.getItem("currentkey");
+        $("#ag-grid-header").html('<h4 class="grid-header">Upload Results for '+filename+'</h4>');
         for (var i = 0; i < data[0].length; i++) {
             var header = data[0][i];
             columnDefs.push({
@@ -164,35 +172,55 @@ $( document ).ready(function() {
             }
             rowData.push(rowObject);
         }
-
         var gridOptions = {
             columnDefs: columnDefs,
             enableColResize: true,
             enableFilter: true,
             enableSorting: true
         };
-        var onBtExport = function() {
+        //Method for exporting the displayed CSV
+        var onExport = function() {
             var exportParams = {
-                fileName: document.querySelector('#txtFileUpload').value
+                fileName: filename
             };
             gridOptions.api.exportDataAsCsv(exportParams);
+        };
+        //Method for saving updated CSV
+        var onSave = function() {
+            var exportParams = {
+                fileName: filename
+            };
+            var savedCSV = gridOptions.api.getDataAsCsv(exportParams);
+            var savedData = $.csv.toArrays(savedCSV);
+            var files = JSON.parse(localStorage.getItem('uploads'));
+
+            for (var i = 0; i < files.length; i++) {
+                if (files[i].key === filekey) {
+                    files[i].data = savedData;
+                    files[i].lasteditdate = formatDate(new Date());
+                    localStorage.setItem("currentfile", files[i].filename);
+                    localStorage.setItem("displaydata", JSON.stringify(savedData));
+                    $(".file-date").text("Last Update: " + files[i].lasteditdate);
+                }
+            }
+            localStorage.setItem('uploads', JSON.stringify(files));
+            renderFileList();
+            alert("Successfully Saved "+localStorage.getItem("currentfile"));
         };
         //Add ag-Grid to the page with the defined grid options
         var eGridDiv = document.querySelector('#ag-grid');
         new agGrid.Grid(eGridDiv, gridOptions);
         //Add the row data to the grid
         gridOptions.api.setRowData(rowData);
-        $("#ag-grid-header").append('<div><div class="btn btn-primary buttons"><span class="glyphicon glyphicon-floppy-disk"></span></div><div id="export" class="btn btn-success buttons"><span class="glyphicon glyphicon-download-alt"></span></div><div id="clear-data" class="btn btn-danger buttons"><span class="glyphicon glyphicon-trash"></span></div></div>');
+        $("#ag-grid-header").append('<div class="grid-header" id="grid-buttons"><div id="save" class="btn btn-primary buttons"><span class="glyphicon glyphicon-floppy-disk"></span></div><div id="export" class="btn btn-success buttons"><span class="glyphicon glyphicon-download-alt"></span></div><div id="clear-data" class="btn btn-danger buttons"><span class="glyphicon glyphicon-remove"></span></div></div>');
         document.getElementById('clear-data').addEventListener('click', clearDisplayData, false);
-        document.getElementById('export').addEventListener('click', onBtExport, false);
+        document.getElementById('export').addEventListener('click', onExport, false);
+        document.getElementById('save').addEventListener('click', onSave, false);
     }
 
     renderFileList();
 
     if (localStorage.getItem("displaydata")) {
         displayLocalData();
-    } else {
-        $("#clear-data").hide();
-        $("#export").hide();
     }
 });

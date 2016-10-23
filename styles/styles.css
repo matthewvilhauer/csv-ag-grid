@@ -1,23 +1,46 @@
 .jumbotron {
     padding: 10px;
 }
-#ag-grid {
-    height:300px;
-    margin-top: 10px;
-}
-
-#clear-uploads {
-    margin-top: 10px;
+.buttons {
+    display: inline-block;
+    margin: 5px;
 }
 .file-date {
     font-size: x-small;
     padding-left: 5px;
     padding-bottom: 10px;
 }
-.file {
-    width: 50px;
-}
-.buttons {
+.grid-header {
     display: inline-block;
-    margin: 5px;
+}
+.my-files-header {
+    display: inline-block;
+    margin-top: 0;
+}
+.upload {
+    display: inline-block;
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-left: 30px;
+}
+#ag-grid {
+    height:300px;
+    margin-top: 10px;
+}
+#clear-uploads {
+    float: right;
+}
+#file-list-container {
+    padding-bottom: 15px;
+}
+#file-list-header {
+    padding-bottom: 10px;
+}
+#file-upload-container {
+    padding: 15px;
+    border: 1px solid black;
+    margin-bottom: 40px;
+}
+#grid-buttons {
+    float: right;
 }
