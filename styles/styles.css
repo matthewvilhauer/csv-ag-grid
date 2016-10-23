@@ -3,17 +3,21 @@
 }
 #ag-grid {
     height:300px;
+    margin-top: 10px;
 }
-#clear-data {
-    margin-top: 20px;
-}
-#export {
-    margin-bottom: 10px;
-}
+
 #clear-uploads {
     margin-top: 10px;
 }
 .file-date {
     font-size: x-small;
-    padding-left: 20px;
+    padding-left: 5px;
+    padding-bottom: 10px;
+}
+.file {
+    width: 50px;
+}
+.buttons {
+    display: inline-block;
+    margin: 5px;
 }
