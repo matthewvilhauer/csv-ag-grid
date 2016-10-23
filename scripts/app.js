@@ -10,7 +10,7 @@ $( document ).ready(function() {
         } else if(hours = 12) {
             am_or_pm = "pm";
         }
-        return ("0" + time.getHours()).slice(-2) + ":" + ("0" + time.getMinutes()).slice(-2) + am_or_pm + " " +
+        return hours + ":" + ("0" + time.getMinutes()).slice(-2) + am_or_pm + " " +
             ("0"+(time.getMonth()+1)).slice(-2) + "-" + ("0" + time.getDate()).slice(-2) + "-" + ("0" + time.getFullYear()).slice(-2);
     };
 
@@ -103,7 +103,7 @@ $( document ).ready(function() {
                 var filename = files[i].filename;
                 var filekey = files[i].key;
 
-                $("#file-list").append('<tr><td id="'+filekey+'"><a>' + filename + '</a></td><td class="file-date">'+files[i].creation_date+'</td></tr>');
+                $("#file-list").append('<div id="'+filekey+'" class="file"><a>' + filename + '</a></div><div class="file-date">Created: ' + files[i].creation_date + '</div>');
                 document.getElementById(filekey).addEventListener('click', displaySelectedData, false);
             }
         }
@@ -124,8 +124,6 @@ $( document ).ready(function() {
     function displayLocalData() {
         var csvData = JSON.parse(localStorage.getItem("displaydata"));
         var filename = localStorage.getItem("currentfile");
-        $("#clear-data").show();
-        document.getElementById('clear-data').addEventListener('click', clearDisplayData, false);
         $("#ag-grid-header").html('<h3>Upload Results for '+filename+'</h3>');
         removeOldAgGrid();
         addAgGrid(csvData);
@@ -184,7 +182,8 @@ $( document ).ready(function() {
         new agGrid.Grid(eGridDiv, gridOptions);
         //Add the row data to the grid
         gridOptions.api.setRowData(rowData);
-        $("#ag-grid-header").append('<div id="export" class="btn btn-success">Export to CSV</div>');
+        $("#ag-grid-header").append('<div><div class="btn btn-primary buttons"><span class="glyphicon glyphicon-floppy-disk"></span></div><div id="export" class="btn btn-success buttons"><span class="glyphicon glyphicon-download-alt"></span></div><div id="clear-data" class="btn btn-danger buttons"><span class="glyphicon glyphicon-trash"></span></div></div>');
+        document.getElementById('clear-data').addEventListener('click', clearDisplayData, false);
         document.getElementById('export').addEventListener('click', onBtExport, false);
     }
 
