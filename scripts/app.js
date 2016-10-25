@@ -4,7 +4,6 @@ $( document ).ready(function() {
 
     // Event listeners for the file upload and clear file list button
     document.getElementById('txtFileUpload').addEventListener('change', upload, false);
-    document.getElementById('clear-uploads').addEventListener('click', clearUploads, false);
 
 /**
  *
@@ -52,21 +51,20 @@ $( document ).ready(function() {
             data: data,
             lasteditdate: formatDate(new Date())
         };
-        if (localStorage.getItem('uploads')) {
-            var UploadList = db.allDocs({include_docs: true, descending: true}, function(err, doc) {
-            console.log("Doc.rows: ", doc.rows[0].doc.filename);
-            return doc.rows;
-        });
-        } else {
-            var UploadList = [];
-        }
-        UploadList.push(upload);
+        // if (localStorage.getItem('uploads')) {
+        //     var UploadList = db.allDocs({include_docs: true, descending: true}, function(err, doc) {
+        //     console.log("Doc.rows: ", doc.rows[0].doc.filename);
+        //     return doc.rows;
+        // });
+        // } else {
+        //     var UploadList = [];
+        // }
+        // UploadList.push(upload);
 
         db.put(upload).then(function (response) {
-            console.log(response);
             localStorage.setItem("currentid", upload.id);
             localStorage.setItem("displaydata", JSON.stringify(data));
-            localStorage.setItem('uploads', JSON.stringify(UploadList));
+            // localStorage.setItem('uploads', JSON.stringify(UploadList));
             localStorage.setItem("currentfile", filename);
             displayLocalData();
             renderFileList();
@@ -97,12 +95,6 @@ $( document ).ready(function() {
     //Method for rendering the file list to the page
     function renderFileList() {
         var files = JSON.parse(localStorage.getItem('uploads'));
-        console.log("Files: ", files);
-
-        var allCSV = db.allDocs({include_docs: true, descending: true}, function(err, doc) {
-            console.log("Doc.rows: ", doc.rows[0].doc.filename);
-            return doc.rows;
-        });
 
         var displaySelectedData = function() {
             var key = this.id;
@@ -115,19 +107,31 @@ $( document ).ready(function() {
                 }
             }
         };
-        //Clear the old file list
-        $("#file-list").html('');
-        //If there are uploads in localstorage, add them to the file list
-        if (localStorage.getItem('uploads')) {
-            for (var i = 0; i < files.length; i++) {
-                var filename = files[i].filename;
-                var filekey = files[i].key;
-                var lasteditdate = files[i].lasteditdate;
 
-                $("#file-list").append('<div id="'+filekey+'" class="file"><a>' + filename + '</a></div><div class="file-date">Last Update: ' + lasteditdate + '</div>');
+        var deleteSelectedData = function() {
+            var csv_to_delete = this;
+            console.log(csv_to_delete.dataset);
+            // db.remove(csv_to_delete);
+            console.log("Deleted!");
+        };
+
+        db.allDocs({include_docs: true, descending: true}, function(err, doc) {
+            // console.log("Doc.rows: ", doc.rows[0].doc.filename);
+            var allfiles =  doc.rows;
+
+            for (var i = 0; i < allfiles.length; i++) {
+                var filename = allfiles[i].doc.filename;
+                var filekey = allfiles[i].id;
+                var lasteditdate = allfiles[i].doc.lasteditdate;
+
+                //Clear the old file list
+                $("#file-list").html('');
+
+                $("#file-list").append('<div class="file-list-row"><div class="file-list-item">' + '<div id="'+filekey+'" class="file"><a>' + filename + '</a></div><div class="file-date">Last Update: ' + lasteditdate + '</div></div><div class="file-list-item"><div id="'+filekey+filename+'" class="btn btn-danger btn-sm remove-file" data-id="'+filekey+'"><span class="glyphicon glyphicon-trash"></span></div></div></div>');
                 document.getElementById(filekey).addEventListener('click', displaySelectedData, false);
+                document.getElementById(filekey+filename).addEventListener('click', deleteSelectedData, false);
             }
-        }
+        });
     }
 
     //Method for removing all files from localStorage and clearing the table.

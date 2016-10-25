@@ -44,3 +44,13 @@
 #grid-buttons {
     float: right;
 }
+.remove-file {
+    float: right;
+    margin-left: 20px;
+}
+.file-list-item {
+    display: inline-block;
+}
+.file-list-row {
+    display: inline-block;
+}
