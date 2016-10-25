@@ -1,8 +1,9 @@
 $( document ).ready(function() {
 
+    var db = new PouchDB('csv_db');
+
     // Event listeners for the file upload and clear file list button
     document.getElementById('txtFileUpload').addEventListener('change', upload, false);
-    document.getElementById('clear-uploads').addEventListener('click', clearUploads, false);
 
 /**
  *
@@ -32,10 +33,8 @@ $( document ).ready(function() {
 
             reader.onload = function(event) {
                 var csvData = event.target.result;
-                data = $.csv.toArrays(csvData);
-                var createdDate = new Date();
-                saveUpload(filename, data, createdDate);
-                displayLocalData();
+                new_data = $.csv.toArrays(csvData);
+                saveUpload(filename, new_data);
             };
             reader.onerror = function() {
                 alert('Unable to read ' + file.fileName);
@@ -44,24 +43,34 @@ $( document ).ready(function() {
     }
 
     //Method that adds an uploaded file to localStorage and sets the displaydata and currentfile to the uploaded file
-    function saveUpload(filename, data, timestamp) {
+    function saveUpload(filename, data) {
+        var timestamp = new Date().toISOString();
         var upload = {
-            key: filename+"_"+timestamp,
+            _id: timestamp,
             filename: filename,
             data: data,
-            lasteditdate: formatDate(timestamp)
+            lasteditdate: formatDate(new Date())
         };
-        if (localStorage.getItem('uploads')) {
-            var UploadList = JSON.parse(localStorage.getItem('uploads'));
-        } else {
-            var UploadList = [];
-        }
-        UploadList.push(upload);
-        localStorage.setItem('uploads', JSON.stringify(UploadList));
-        localStorage.setItem("displaydata", JSON.stringify(data));
-        localStorage.setItem("currentfile", filename);
-        localStorage.setItem("currentkey", filename+"_"+timestamp);
-        renderFileList();
+        // if (localStorage.getItem('uploads')) {
+        //     var UploadList = db.allDocs({include_docs: true, descending: true}, function(err, doc) {
+        //     console.log("Doc.rows: ", doc.rows[0].doc.filename);
+        //     return doc.rows;
+        // });
+        // } else {
+        //     var UploadList = [];
+        // }
+        // UploadList.push(upload);
+
+        db.put(upload).then(function (response) {
+            localStorage.setItem("currentid", upload.id);
+            localStorage.setItem("displaydata", JSON.stringify(data));
+            // localStorage.setItem('uploads', JSON.stringify(UploadList));
+            localStorage.setItem("currentfile", filename);
+            displayLocalData();
+            renderFileList();
+        }).catch(function (error) {
+            console.log(error);
+        });
     }
 
     //Method for formatting time
@@ -86,10 +95,11 @@ $( document ).ready(function() {
     //Method for rendering the file list to the page
     function renderFileList() {
         var files = JSON.parse(localStorage.getItem('uploads'));
+
         var displaySelectedData = function() {
             var key = this.id;
             for (var i = 0; i < files.length; i++) {
-                if (files[i].key == key) {
+                if (files[i]._id == key) {
                     var selectedData = JSON.stringify(files[i].data);
                     localStorage.setItem("currentfile", files[i].filename);
                     localStorage.setItem("displaydata", selectedData);
@@ -97,19 +107,31 @@ $( document ).ready(function() {
                 }
             }
         };
-        //Clear the old file list
-        $("#file-list").html('');
-        //If there are uploads in localstorage, add them to the file list
-        if (localStorage.getItem('uploads')) {
-            for (var i = 0; i < files.length; i++) {
-                var filename = files[i].filename;
-                var filekey = files[i].key;
-                var lasteditdate = files[i].lasteditdate;
 
-                $("#file-list").append('<div id="'+filekey+'" class="file"><a>' + filename + '</a></div><div class="file-date">Last Update: ' + lasteditdate + '</div>');
+        var deleteSelectedData = function() {
+            var csv_to_delete = this;
+            console.log(csv_to_delete.dataset);
+            // db.remove(csv_to_delete);
+            console.log("Deleted!");
+        };
+
+        db.allDocs({include_docs: true, descending: true}, function(err, doc) {
+            // console.log("Doc.rows: ", doc.rows[0].doc.filename);
+            var allfiles =  doc.rows;
+
+            for (var i = 0; i < allfiles.length; i++) {
+                var filename = allfiles[i].doc.filename;
+                var filekey = allfiles[i].id;
+                var lasteditdate = allfiles[i].doc.lasteditdate;
+
+                //Clear the old file list
+                $("#file-list").html('');
+
+                $("#file-list").append('<div class="file-list-row"><div class="file-list-item">' + '<div id="'+filekey+'" class="file"><a>' + filename + '</a></div><div class="file-date">Last Update: ' + lasteditdate + '</div></div><div class="file-list-item"><div id="'+filekey+filename+'" class="btn btn-danger btn-sm remove-file" data-id="'+filekey+'"><span class="glyphicon glyphicon-trash"></span></div></div></div>');
                 document.getElementById(filekey).addEventListener('click', displaySelectedData, false);
+                document.getElementById(filekey+filename).addEventListener('click', deleteSelectedData, false);
             }
-        }
+        });
     }
 
     //Method for removing all files from localStorage and clearing the table.
@@ -127,7 +149,6 @@ $( document ).ready(function() {
     //Method for displaying an new ag-grid using the current localstorage data
     function displayLocalData() {
         var csvData = JSON.parse(localStorage.getItem("displaydata"));
-        var filename = localStorage.getItem("currentfile");
         removeOldAgGrid();
         addAgGrid(csvData);
     }
@@ -152,7 +173,7 @@ $( document ).ready(function() {
         var columnDefs = [];
         var rowData = [];
         var filename = localStorage.getItem("currentfile");
-        var filekey = localStorage.getItem("currentkey");
+        var file_id = localStorage.getItem("currentid");
         $("#ag-grid-header").html('<h4 class="grid-header">Upload Results for '+filename+'</h4>');
         for (var i = 0; i < data[0].length; i++) {
             var header = data[0][i];
@@ -195,7 +216,7 @@ $( document ).ready(function() {
             var files = JSON.parse(localStorage.getItem('uploads'));
 
             for (var i = 0; i < files.length; i++) {
-                if (files[i].key === filekey) {
+                if (files[i]._id === file_id) {
                     files[i].data = savedData;
                     files[i].lasteditdate = formatDate(new Date());
                     localStorage.setItem("currentfile", files[i].filename);
@@ -212,6 +233,7 @@ $( document ).ready(function() {
         new agGrid.Grid(eGridDiv, gridOptions);
         //Add the row data to the grid
         gridOptions.api.setRowData(rowData);
+        //Add save, download, and clear buttons to the grid header and attach their event listeners
         $("#ag-grid-header").append('<div class="grid-header" id="grid-buttons"><div id="save" class="btn btn-primary buttons"><span class="glyphicon glyphicon-floppy-disk"></span></div><div id="export" class="btn btn-success buttons"><span class="glyphicon glyphicon-download-alt"></span></div><div id="clear-data" class="btn btn-danger buttons"><span class="glyphicon glyphicon-remove"></span></div></div>');
         document.getElementById('clear-data').addEventListener('click', clearDisplayData, false);
         document.getElementById('export').addEventListener('click', onExport, false);
