@@ -2,26 +2,6 @@ $( document ).ready(function() {
 
     var db = new PouchDB('csv_db');
 
-    function getCSVFromLocalStorage(csvId) {
-        return db.get(csvId);
-    }
-    function putCSVIntoLocalStorage(filename, data) {
-        return db.put({
-            _id: new Date().toISOString(),
-            filename: filename,
-            data: data,
-            lasteditdate: formatDate(new Date())
-        });
-    }
-    function updateCSVIntoLocalStorage(csvId, filename, savedData) {
-        return db.put({
-            _id: csvId,
-            filename: filename,
-            data: savedData,
-            lasteditdate: formatDate(new Date())
-        });
-    }
-
     // Event listeners for the file upload and clear file list button
     document.getElementById('txtFileUpload').addEventListener('change', upload, false);
     document.getElementById('clear-uploads').addEventListener('click', clearUploads, false);
@@ -54,10 +34,8 @@ $( document ).ready(function() {
 
             reader.onload = function(event) {
                 var csvData = event.target.result;
-                data = $.csv.toArrays(csvData);
-                saveUpload(filename, data);
-                putCSVIntoLocalStorage(filename, data);
-                displayLocalData();
+                new_data = $.csv.toArrays(csvData);
+                saveUpload(filename, new_data);
             };
             reader.onerror = function() {
                 alert('Unable to read ' + file.fileName);
@@ -75,23 +53,26 @@ $( document ).ready(function() {
             lasteditdate: formatDate(new Date())
         };
         if (localStorage.getItem('uploads')) {
-            var UploadList = JSON.parse(localStorage.getItem('uploads'));
+            var UploadList = db.allDocs({include_docs: true, descending: true}, function(err, doc) {
+            console.log("Doc.rows: ", doc.rows[0].doc.filename);
+            return doc.rows;
+        });
         } else {
             var UploadList = [];
         }
         UploadList.push(upload);
-        db.put(upload, function callback(err, result) {
-            console.log(result.id);
-            if (!err) {
-                console.log('Successfully saved a CSV');
-            }
+
+        db.put(upload).then(function (response) {
+            console.log(response);
+            localStorage.setItem("currentid", upload.id);
+            localStorage.setItem("displaydata", JSON.stringify(data));
+            localStorage.setItem('uploads', JSON.stringify(UploadList));
+            localStorage.setItem("currentfile", filename);
+            displayLocalData();
+            renderFileList();
+        }).catch(function (error) {
+            console.log(error);
         });
-        var test = db.get(result.id);
-        localStorage.setItem('uploads', JSON.stringify(UploadList));
-        localStorage.setItem("displaydata", JSON.stringify(data));
-        localStorage.setItem("currentfile", filename);
-        localStorage.setItem("currentid", timestamp);
-        renderFileList();
     }
 
     //Method for formatting time
@@ -116,6 +97,13 @@ $( document ).ready(function() {
     //Method for rendering the file list to the page
     function renderFileList() {
         var files = JSON.parse(localStorage.getItem('uploads'));
+        console.log("Files: ", files);
+
+        var allCSV = db.allDocs({include_docs: true, descending: true}, function(err, doc) {
+            console.log("Doc.rows: ", doc.rows[0].doc.filename);
+            return doc.rows;
+        });
+
         var displaySelectedData = function() {
             var key = this.id;
             for (var i = 0; i < files.length; i++) {
@@ -157,8 +145,6 @@ $( document ).ready(function() {
     //Method for displaying an new ag-grid using the current localstorage data
     function displayLocalData() {
         var csvData = JSON.parse(localStorage.getItem("displaydata"));
-        var filename = localStorage.getItem("currentfile");
-        // var csvData = getCSVFromLocalStorage(csvId);
         removeOldAgGrid();
         addAgGrid(csvData);
     }
