@@ -51,6 +51,6 @@
 .file-list-item {
     display: inline-block;
 }
-.file-list-row {
-    display: inline-block;
+#line-graph-header {
+    padding-top: 20px;
 }
