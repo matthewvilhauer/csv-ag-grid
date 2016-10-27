@@ -23,6 +23,8 @@
     <script src="lib/jquery.csv.js"></script>
     <script src="lib/ag-grid.js"></script>
     <script src="lib/pouchdb-6.0.7.js"></script>
+    <script src="lib/highcharts.js"></script>
+
     <!--APPLICATION SCRIPTS-->
     <script src="scripts/app.js"></script>
 </head>
@@ -50,6 +52,10 @@
         <div id="ag-grid-container" class="col-xs-12">
             <div id="ag-grid-header"></div>
             <div id="ag-grid" class="ag-fresh"></div>
+        </div>
+        <div id="line-graph-container" class="col-xs-12">
+            <h4 id="line-graph-header">Line Graph</h4>
+            <div id="line-graph" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
         </div>
     </div>
 </body>
