@@ -159,9 +159,9 @@ $( document ).ready(function() {
     function addAgGrid(data) {
         var columnDefs = [];
         var rowData = [];
-        var filename = localStorage.getItem("currentfile");
+        var currentFileName = localStorage.getItem("currentfile");
         var file_id = localStorage.getItem("currentid");
-        $("#ag-grid-header").html('<h4 class="grid-header">Upload Results for '+filename+'</h4>');
+        $("#ag-grid-header").html('<h4 class="grid-header">Upload Results for '+currentFileName+'</h4>');
         for (var i = 0; i < data[0].length; i++) {
             var header = data[0][i];
             columnDefs.push({
@@ -189,31 +189,33 @@ $( document ).ready(function() {
         //Method for exporting the displayed CSV
         var onExport = function() {
             var exportParams = {
-                fileName: filename
+                fileName: currentFileName
             };
             gridOptions.api.exportDataAsCsv(exportParams);
         };
         //Method for saving updated CSV
         var onSave = function() {
             var exportParams = {
-                fileName: filename
+                fileName: currentFileName
             };
             var savedCSV = gridOptions.api.getDataAsCsv(exportParams);
             var savedData = $.csv.toArrays(savedCSV);
-            var files = JSON.parse(localStorage.getItem('uploads'));
+            var saveDate = formatDate(new Date());
 
-            for (var i = 0; i < files.length; i++) {
-                if (files[i]._id === file_id) {
-                    files[i].data = savedData;
-                    files[i].lasteditdate = formatDate(new Date());
-                    localStorage.setItem("currentfile", files[i].filename);
-                    localStorage.setItem("displaydata", JSON.stringify(savedData));
-                    $(".file-date").text("Last Update: " + files[i].lasteditdate);
-                }
-            }
-            localStorage.setItem('uploads', JSON.stringify(files));
-            renderFileList();
-            alert("Successfully Saved "+localStorage.getItem("currentfile"));
+            db.get(file_id).then(function(doc) {
+                return db.put({
+                    _id: file_id,
+                    _rev: doc._rev,
+                    filename: currentFileName,
+                    data: savedData,
+                    lasteditdate: saveDate
+                });
+            }).then(function(response) {
+                renderFileList();
+                alert("Successfully Saved CSV.");
+            }).catch(function(err) {
+                console.log(err);
+            })
         };
         //Add ag-Grid to the page with the defined grid options
         var eGridDiv = document.querySelector('#ag-grid');
