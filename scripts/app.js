@@ -200,6 +200,7 @@ $( document ).ready(function() {
             };
             var savedCSV = gridOptions.api.getDataAsCsv(exportParams);
             var savedData = $.csv.toArrays(savedCSV);
+            var saveDate = formatDate(new Date());
 
             db.get(file_id).then(function(doc) {
                 return db.put({
@@ -207,10 +208,11 @@ $( document ).ready(function() {
                     _rev: doc._rev,
                     filename: currentFileName,
                     data: savedData,
-                    lasteditdate: formatDate(new Date())
+                    lasteditdate: saveDate
                 });
             }).then(function(response) {
-                alert("Successfully Saved CSV.")
+                renderFileList();
+                alert("Successfully Saved CSV.");
             }).catch(function(err) {
                 console.log(err);
             })
