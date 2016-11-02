@@ -150,6 +150,7 @@ $( document ).ready(function() {
     function displayLocalData() {
         var csvData = JSON.parse(localStorage.getItem("displaydata"));
         removeOldAgGrid();
+        removeGraph();
         addAgGrid(csvData);
     }
 
@@ -251,35 +252,30 @@ $( document ).ready(function() {
 
     function showGraph() {
 
-        var currentFileName = localStorage.getItem("currentfile");
-        var file_id = localStorage.getItem("currentid");
-        var xAxisData = [];
-        var yAxisData = [];
+        var currentFileName_graph = localStorage.getItem("currentfile");
+        var file_id_graph = localStorage.getItem("currentid");
+
         var xAxisLabel = "";
         var yAxisLabel = "";
-        var scatterData = [[1,2],[3,4],[5,2]];
+        var scatterData = [];
 
-        var setXAxisData = function(colnum, data) {
+        var setScatterData = function(xcolnum, ycolnum, data) {
+            scatterData = [];
 
-            xAxisLabel = data[0][colnum];
+            xAxisLabel = data[0][xcolnum];
+            yAxisLabel = data[0][ycolnum];
 
             for (var i = 1; i < data.length; i++) {
-                xAxisData.push(parseFloat(data[i][colnum]));
+                scatterData.push([parseFloat(data[i][xcolnum]), parseFloat(data[i][ycolnum])]);
             }
         };
 
-        var setYAxisData = function(colnum, data) {
+        db.get(file_id_graph).then(function(response) {
 
-            yAxisLabel = data[0][colnum];
+            var xcol = 0;
+            var ycol = 1;
 
-            for (var i = 1; i < data.length; i++) {
-                yAxisData.push(parseFloat(data[i][colnum]));
-            }
-        };
-
-        db.get(file_id).then(function(response) {
-
-            $('#ag-grid-container').append('<div id="x-axis-select-container"><select name="x-axis" id="x-axis-select"></select></div>');
+            $('#ag-grid-container').append('<div id="axis-select-container"><div class="col-sm-6"><h4>Choose Which Columns To Graph</h4></div><div class="x-axis-container col-sm-2"><div>X Axis: </div><select name="x-axis" id="x-axis-select"></select></div><div class="y-axis-container col-sm-2"><div>Y Axis: </div><select name="y-axis" id="y-axis-select"></select></div></div>');
 
             for (var i = 0; i < response.data[0].length; i++) {
                 var o = new Option(response.data[0][i], response.data[0][i]);
@@ -287,78 +283,106 @@ $( document ).ready(function() {
                 $(o).html(response.data[0][i]);
                 $("#x-axis-select").append(o);
             }
+            for (var i = 0; i < response.data[0].length; i++) {
+                var o = new Option(response.data[0][i], response.data[0][i]);
+                /// jquerify the DOM object 'o' so we can use the html method
+                $(o).html(response.data[0][i]);
+                $("#y-axis-select").append(o);
+            }
+            document.getElementById('x-axis-select').addEventListener('change', setXAxis, false);
+            document.getElementById('y-axis-select').addEventListener('change', setYAxis, false);
 
-            setXAxisData(1, response.data);
-            setYAxisData(2, response.data);
-
-            console.log(yAxisData);
-
-            for (var j = 1; j < xAxisData.length || yAxisData.length; j++) {
-                scatterData.push([xAxisData[j], yAxisData[j]])
+            function setXAxis() {
+                for (var i = 0; i < response.data[0].length; i++) {
+                    if ( response.data[0][i] === $("#x-axis-select").val()) {
+                        xcol = i;
+                    }
+                }
+                setScatterData(xcol, ycol, response.data);
+                graphChart();
+            }
+            function setYAxis() {
+                for (var i = 0; i < response.data[0].length; i++) {
+                    if ( response.data[0][i] === $("#y-axis-select").val()) {
+                        ycol = i;
+                    }
+                }
+                setScatterData(xcol, ycol, response.data);
+                graphChart();
             }
 
-            console.log(scatterData);
+            function graphChart() {
 
-            $('#x-axis-select-container').append('<div id="scatter-plot-container" class="col-xs-12"><div id="scatter-plot" style="min-width: 310px; height: 400px; margin: 0 auto"></div></div>');
+                $('#axis-select-container').append('<div id="scatter-plot-container" class="col-xs-12"><div id="scatter-plot" style="min-width: 310px; height: 400px; margin: 0 auto"></div></div>');
 
-            $('#scatter-plot').highcharts({
-                chart: {
-                    type: 'scatter',
-                    zoomType: 'xy'
-                },
-                title: {
-                    text: currentFileName
-                },
-                subtitle: {
-                    text: 'Scatter Plot'
-                },
-                xAxis: {
-                    title: {
-                        enabled: true,
-                        text: xAxisLabel
+                $('#scatter-plot').highcharts({
+                    chart: {
+                        type: 'scatter',
+                        zoomType: 'xy'
                     },
-                    startOnTick: true,
-                    endOnTick: true,
-                    showLastLabel: true
-                },
-                yAxis: {
                     title: {
-                        text: yAxisLabel
-                    }
-                },
-                plotOptions: {
-                    scatter: {
-                        marker: {
-                            radius: 5,
+                        text: currentFileName_graph
+                    },
+                    subtitle: {
+                        text: 'Scatter Plot'
+                    },
+                    xAxis: {
+                        title: {
+                            enabled: true,
+                            text: xAxisLabel
+                        },
+                        startOnTick: true,
+                        endOnTick: true,
+                        showLastLabel: true
+                    },
+                    yAxis: {
+                        title: {
+                            text: yAxisLabel
+                        }
+                    },
+                    plotOptions: {
+                        scatter: {
+                            marker: {
+                                radius: 5,
+                                states: {
+                                    hover: {
+                                        enabled: true,
+                                        lineColor: 'rgb(100,100,100)'
+                                    }
+                                }
+                            },
                             states: {
                                 hover: {
-                                    enabled: true,
-                                    lineColor: 'rgb(100,100,100)'
+                                    marker: {
+                                        enabled: false
+                                    }
                                 }
+                            },
+                            tooltip: {
+                                headerFormat: '<b>{series.name}</b><br>',
+                                pointFormat: '{point.x}, {point.y}'
                             }
-                        },
-                        states: {
-                            hover: {
-                                marker: {
-                                    enabled: false
-                                }
-                            }
-                        },
-                        tooltip: {
-                            headerFormat: '<b>{series.name}</b><br>',
-                            pointFormat: '{point.x}, {point.y}'
                         }
-                    }
-                },
-                series: [{
-                    name: xAxisLabel + ' x ' + yAxisLabel,
-                    color: 'rgba(223, 83, 83, .5)',
-                    data: scatterData
+                    },
+                    series: [{
+                        name: xAxisLabel + ' x ' + yAxisLabel,
+                        color: 'rgba(223, 83, 83, .5)',
+                        data: scatterData
 
-                }]
-            });
+                    }]
+                });
+            }
+
+            //Initially set both Axis to show graph when the button is clicked
+            setXAxis();
+            setYAxis();
 
         });
+    }
+
+    function removeGraph() {
+        $("#scatter-plot-container").html('');
+        $("#axis-select-container").html('');
     }
 
 /**

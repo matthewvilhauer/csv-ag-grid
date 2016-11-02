@@ -54,3 +54,13 @@
 #line-graph-header {
     padding-top: 20px;
 }
+#axis-select-container {
+    padding: 20px;
+    margin-bottom: 50px;
+}
+.x-axis-container {
+    margin-bottom: 20px;
+}
+.y-axis-container {
+    margin-bottom: 20px;
+}
