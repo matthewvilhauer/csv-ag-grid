@@ -5,30 +5,51 @@
     display: inline-block;
     margin: 5px;
 }
-.file-date {
-    font-size: x-small;
-    padding-left: 5px;
-    padding-bottom: 10px;
-}
-.grid-header {
-    display: inline-block;
-}
-.my-files-header {
-    display: inline-block;
-    margin-top: 0;
-}
+
+/*Upload*/
+
 .upload {
     display: inline-block;
     margin-top: 0;
     margin-bottom: 0;
-    padding-left: 30px;
+    padding-left: 0px;
+}
+
+/*Grid*/
+
+.grid-header {
+    display: inline-block;
+    margin-top: 10px;
 }
 #ag-grid {
     height:300px;
     margin-top: 10px;
 }
-#clear-uploads {
+#grid-buttons {
     float: right;
+}
+
+/*File List*/
+
+.file-list-item {
+    display: inline-block;
+}
+.col-sm-10 {
+    padding-left: 0px;
+    margin-left: 0px;
+}
+.my-files-header {
+    display: inline-block;
+    margin-top: 0;
+}
+.file-date {
+    font-size: x-small;
+    padding-left: 5px;
+    padding-bottom: 10px;
+}
+.remove-file {
+    float: right;
+    margin-left: 20px;
 }
 #file-list-container {
     padding-bottom: 15px;
@@ -39,18 +60,11 @@
 #file-upload-container {
     padding: 15px;
     border: 1px solid black;
-    margin-bottom: 40px;
+    margin-bottom: 20px
 }
-#grid-buttons {
-    float: right;
-}
-.remove-file {
-    float: right;
-    margin-left: 20px;
-}
-.file-list-item {
-    display: inline-block;
-}
+
+/*Graph*/
+
 #line-graph-header {
     padding-top: 20px;
 }
