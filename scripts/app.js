@@ -54,9 +54,10 @@ $( document ).ready(function() {
         };
 
         db.put(upload).then(function (response) {
-            localStorage.setItem("currentid", upload.id);
-            localStorage.setItem("currentfile", filename);
-            localStorage.setItem("displaydata", JSON.stringify(data));
+            console.log(response);
+            localStorage.setItem("currentid", response.id);
+            localStorage.setItem("currentfile", upload.filename);
+            localStorage.setItem("displaydata", JSON.stringify(upload.data));
             displayLocalData();
             renderFileList();
         }).catch(function (error) {
@@ -162,6 +163,7 @@ $( document ).ready(function() {
         $("#export").hide();
         $("#ag-grid-header").html('');
         removeOldAgGrid();
+        removeGraph();
     }
 
     //Method to clear the contents of the grid and its header
@@ -259,6 +261,7 @@ $( document ).ready(function() {
         var yAxisLabel = "";
         var scatterData = [];
 
+        //Function for setting the scatter plot data with selected x axis column, y axis column, and the dataset
         var setScatterData = function(xcolnum, ycolnum, data) {
             scatterData = [];
 
@@ -270,28 +273,37 @@ $( document ).ready(function() {
             }
         };
 
+        $('#ag-grid-container').append('<div id="axis-select-container"><div class="col-sm-6"><h4>Choose Which Columns To Graph</h4></div><div class="x-axis-container col-sm-2"><div>X Axis: </div><select name="x-axis" id="x-axis-select"></select></div><div class="y-axis-container col-sm-2"><div>Y Axis: </div><select name="y-axis" id="y-axis-select"></select></div></div><div id="scatter-graph-container"></div>');
+
         db.get(file_id_graph).then(function(response) {
 
             var xcol = 0;
             var ycol = 1;
 
-            $('#ag-grid-container').append('<div id="axis-select-container"><div class="col-sm-6"><h4>Choose Which Columns To Graph</h4></div><div class="x-axis-container col-sm-2"><div>X Axis: </div><select name="x-axis" id="x-axis-select"></select></div><div class="y-axis-container col-sm-2"><div>Y Axis: </div><select name="y-axis" id="y-axis-select"></select></div></div>');
+            //Add columns as select options for dropdowns
+            for (var i = 0; i < response.data[0].length; i++) {
+                //Validation to see if the first 3 values in a column contain numbers. If they do, add them to the list
+                if (!isNaN(response.data[1][i])) {
+                    var o = new Option(response.data[0][i], response.data[0][i]);
+                    /// jquerify the DOM object 'o' so we can use the html method
+                    $(o).html(response.data[0][i]);
+                    $("#x-axis-select").append(o);
+                }
+            }
+            for (var i = 0; i < response.data[0].length; i++) {
+                //Validation to see if the first 3 values in a column contain numbers. If they do, add them to the list
+                if (!isNaN(response.data[1][i])) {
+                    var o = new Option(response.data[0][i], response.data[0][i]);
+                    /// jquerify the DOM object 'o' so we can use the html method
+                    $(o).html(response.data[0][i]);
+                    $("#y-axis-select").append(o);
+                }
 
-            for (var i = 0; i < response.data[0].length; i++) {
-                var o = new Option(response.data[0][i], response.data[0][i]);
-                /// jquerify the DOM object 'o' so we can use the html method
-                $(o).html(response.data[0][i]);
-                $("#x-axis-select").append(o);
             }
-            for (var i = 0; i < response.data[0].length; i++) {
-                var o = new Option(response.data[0][i], response.data[0][i]);
-                /// jquerify the DOM object 'o' so we can use the html method
-                $(o).html(response.data[0][i]);
-                $("#y-axis-select").append(o);
-            }
+            //Add event listeners for dropdowns
             document.getElementById('x-axis-select').addEventListener('change', setXAxis, false);
             document.getElementById('y-axis-select').addEventListener('change', setYAxis, false);
-
+            //Function to set the X Axis and redraw graph
             function setXAxis() {
                 for (var i = 0; i < response.data[0].length; i++) {
                     if ( response.data[0][i] === $("#x-axis-select").val()) {
@@ -301,6 +313,7 @@ $( document ).ready(function() {
                 setScatterData(xcol, ycol, response.data);
                 graphChart();
             }
+            //Function to set the Y Axis and redraw graph
             function setYAxis() {
                 for (var i = 0; i < response.data[0].length; i++) {
                     if ( response.data[0][i] === $("#y-axis-select").val()) {
@@ -310,10 +323,10 @@ $( document ).ready(function() {
                 setScatterData(xcol, ycol, response.data);
                 graphChart();
             }
-
+            //Add the Scatter plot to the page with the given configuration options
             function graphChart() {
 
-                $('#axis-select-container').append('<div id="scatter-plot-container" class="col-xs-12"><div id="scatter-plot" style="min-width: 310px; height: 400px; margin: 0 auto"></div></div>');
+                $('#scatter-graph-container').html('<div id="scatter-plot-container" class="col-xs-12"><div id="scatter-plot" style="min-width: 310px; height: 400px; margin: 0 auto"></div></div>');
 
                 $('#scatter-plot').highcharts({
                     chart: {
@@ -372,7 +385,6 @@ $( document ).ready(function() {
                     }]
                 });
             }
-
             //Initially set both Axis to show graph when the button is clicked
             setXAxis();
             setYAxis();
@@ -381,8 +393,8 @@ $( document ).ready(function() {
     }
 
     function removeGraph() {
-        $("#scatter-plot-container").html('');
         $("#axis-select-container").html('');
+        $("#scatter-plot-container").html('');
     }
 
 /**
