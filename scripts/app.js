@@ -4,6 +4,7 @@ $( document ).ready(function() {
 
     // Event listeners for the file upload and clear file list button
     document.getElementById('txtFileUpload').addEventListener('change', upload, false);
+    document.getElementById('clear-db').addEventListener('click', clearDb, false);
 
 /**
  *
@@ -75,7 +76,7 @@ $( document ).ready(function() {
         }
         return hours + ":" + ("0" + time.getMinutes()).slice(-2) + am_or_pm + " " +
             ("0"+(time.getMonth()+1)).slice(-2) + "-" + ("0" + time.getDate()).slice(-2) + "-" + ("0" + time.getFullYear()).slice(-2);
-    };
+    }
 
 /**
  *
@@ -100,32 +101,44 @@ $( document ).ready(function() {
             var csv_to_delete = this.getAttribute('data-id');
             db.get(csv_to_delete).then(function (doc) {
                 db.remove(doc);
+                renderFileList();
+            }).then(function() {
+                if( csv_to_delete === localStorage.getItem("currentid")) {
+                    clearDisplayData();
+                }
             });
-            if( csv_to_delete === localStorage.getItem("currentid")) {
-                clearDisplayData();
-            }
-            document.location.reload(true);
         };
 
         //Clear the old file list
         $("#file-list").html('');
 
         db.allDocs({include_docs: true, descending: true}, function(err, doc) {
+            if (!err) {
+                var allfiles =  doc.rows;
 
-            var allfiles =  doc.rows;
-            // console.log(allfiles);
+                for (var i = 0; i < allfiles.length; i++) {
 
-            for (var i = 0; i < allfiles.length; i++) {
+                    var filename = allfiles[i].doc.filename;
+                    var filekey = allfiles[i].id;
+                    var lasteditdate = allfiles[i].doc.lasteditdate;
 
-                var filename = allfiles[i].doc.filename;
-                var filekey = allfiles[i].id;
-                var lasteditdate = allfiles[i].doc.lasteditdate;
-
-                $("#file-list").append('<div class="file-list-row"><div class="file-list-item">' + '<div id="'+filekey+'" class="file"><a>' + filename + '</a></div><div class="file-date">Last Update: ' + lasteditdate + '</div></div><div class="file-list-item"><div id="'+filekey+filename+'" class="btn btn-danger btn-sm remove-file" data-id="'+filekey+'"><span class="glyphicon glyphicon-trash"></span></div></div></div>');
-                document.getElementById(filekey).addEventListener('click', displaySelectedData, false);
-                document.getElementById(filekey+filename).addEventListener('click', deleteSelectedData, false);
+                    $("#file-list").append('<div class="file-list-row"><div class="file-list-item">' + '<div id="'+filekey+'" class="file"><a>' + filename + '</a></div><div class="file-date">Last Update: ' + lasteditdate + '</div></div><div class="file-list-item"><div id="'+filekey+filename+'" class="btn btn-danger btn-sm remove-file" data-id="'+filekey+'"><span class="glyphicon glyphicon-trash"></span></div></div></div>');
+                    document.getElementById(filekey).addEventListener('click', displaySelectedData, false);
+                    document.getElementById(filekey+filename).addEventListener('click', deleteSelectedData, false);
+                }
             }
+        }).catch(function(err) {
+            console.log("No Files To Retrieve");
         });
+    }
+
+    //Method for clearing the entire DB of files
+    function clearDb() {
+        db.destroy().then(function() {
+            renderFileList();
+            clearDisplayData();
+        });
+        document.location.reload(true);
     }
 
 /**
@@ -223,10 +236,11 @@ $( document ).ready(function() {
         //Add the row data to the grid
         gridOptions.api.setRowData(rowData);
         //Add save, download, and clear buttons to the grid header and attach their event listeners
-        $("#ag-grid-header").append('<div class="grid-header" id="grid-buttons"><div id="save" class="btn btn-primary buttons"><span class="glyphicon glyphicon-floppy-disk"></span></div><div id="export" class="btn btn-success buttons"><span class="glyphicon glyphicon-download-alt"></span></div><div id="clear-data" class="btn btn-danger buttons"><span class="glyphicon glyphicon-remove"></span></div></div>');
+        $("#ag-grid-header").append('<div class="grid-header" id="grid-buttons"><div id="show-graph" class="btn btn-warning buttons"><span class="glyphicon glyphicon-equalizer"></span></div><div id="save" class="btn btn-primary buttons"><span class="glyphicon glyphicon-floppy-disk"></span></div><div id="export" class="btn btn-success buttons"><span class="glyphicon glyphicon-download-alt"></span></div><div id="clear-data" class="btn btn-danger buttons"><span class="glyphicon glyphicon-remove"></span></div></div>');
         document.getElementById('clear-data').addEventListener('click', clearDisplayData, false);
         document.getElementById('export').addEventListener('click', onExport, false);
         document.getElementById('save').addEventListener('click', onSave, false);
+        document.getElementById('show-graph').addEventListener('click', showGraph, false);
     }
 
 /**
@@ -235,40 +249,117 @@ $( document ).ready(function() {
  *
  **/
 
-    $('#line-graph').highcharts({
-        chart: {
-            type: 'line'
-        },
-        title: {
-            text: 'Monthly Average Temperature'
-        },
-        subtitle: {
-            text: 'Source: WorldClimate.com'
-        },
-        xAxis: {
-            categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-        },
-        yAxis: {
-            title: {
-                text: 'Temperature (°C)'
+    function showGraph() {
+
+        var currentFileName = localStorage.getItem("currentfile");
+        var file_id = localStorage.getItem("currentid");
+        var xAxisData = [];
+        var yAxisData = [];
+        var xAxisLabel = "";
+        var yAxisLabel = "";
+        var scatterData = [[1,2],[3,4],[5,2]];
+
+        var setXAxisData = function(colnum, data) {
+
+            xAxisLabel = data[0][colnum];
+
+            for (var i = 1; i < data.length; i++) {
+                xAxisData.push(parseFloat(data[i][colnum]));
             }
-        },
-        plotOptions: {
-            line: {
-                dataLabels: {
-                    enabled: true
+        };
+
+        var setYAxisData = function(colnum, data) {
+
+            yAxisLabel = data[0][colnum];
+
+            for (var i = 1; i < data.length; i++) {
+                yAxisData.push(parseFloat(data[i][colnum]));
+            }
+        };
+
+        db.get(file_id).then(function(response) {
+
+            $('#ag-grid-container').append('<div id="x-axis-select-container"><select name="x-axis" id="x-axis-select"></select></div>');
+
+            for (var i = 0; i < response.data[0].length; i++) {
+                var o = new Option(response.data[0][i], response.data[0][i]);
+                /// jquerify the DOM object 'o' so we can use the html method
+                $(o).html(response.data[0][i]);
+                $("#x-axis-select").append(o);
+            }
+
+            setXAxisData(1, response.data);
+            setYAxisData(2, response.data);
+
+            console.log(yAxisData);
+
+            for (var j = 1; j < xAxisData.length || yAxisData.length; j++) {
+                scatterData.push([xAxisData[j], yAxisData[j]])
+            }
+
+            console.log(scatterData);
+
+            $('#x-axis-select-container').append('<div id="scatter-plot-container" class="col-xs-12"><div id="scatter-plot" style="min-width: 310px; height: 400px; margin: 0 auto"></div></div>');
+
+            $('#scatter-plot').highcharts({
+                chart: {
+                    type: 'scatter',
+                    zoomType: 'xy'
                 },
-                enableMouseTracking: false
-            }
-        },
-        series: [{
-            name: 'Tokyo',
-            data: [7.0, 6.9, 9.5, 14.5, 18.4, 21.5, 25.2, 26.5, 23.3, 18.3, 13.9, 9.6]
-        }, {
-            name: 'London',
-            data: [3.9, 4.2, 5.7, 8.5, 11.9, 15.2, 17.0, 16.6, 14.2, 10.3, 6.6, 4.8]
-        }]
-    });
+                title: {
+                    text: currentFileName
+                },
+                subtitle: {
+                    text: 'Scatter Plot'
+                },
+                xAxis: {
+                    title: {
+                        enabled: true,
+                        text: xAxisLabel
+                    },
+                    startOnTick: true,
+                    endOnTick: true,
+                    showLastLabel: true
+                },
+                yAxis: {
+                    title: {
+                        text: yAxisLabel
+                    }
+                },
+                plotOptions: {
+                    scatter: {
+                        marker: {
+                            radius: 5,
+                            states: {
+                                hover: {
+                                    enabled: true,
+                                    lineColor: 'rgb(100,100,100)'
+                                }
+                            }
+                        },
+                        states: {
+                            hover: {
+                                marker: {
+                                    enabled: false
+                                }
+                            }
+                        },
+                        tooltip: {
+                            headerFormat: '<b>{series.name}</b><br>',
+                            pointFormat: '{point.x}, {point.y}'
+                        }
+                    }
+                },
+                series: [{
+                    name: xAxisLabel + ' x ' + yAxisLabel,
+                    color: 'rgba(223, 83, 83, .5)',
+                    data: scatterData
+
+                }]
+            });
+
+        });
+    }
 
 /**
  *
