@@ -123,7 +123,7 @@ $( document ).ready(function() {
                     var filekey = allfiles[i].id;
                     var lasteditdate = allfiles[i].doc.lasteditdate;
 
-                    $("#file-list").append('<div class="file-list-row"><div class="file-list-item">' + '<div id="'+filekey+'" class="file"><a>' + filename + '</a></div><div class="file-date">Last Update: ' + lasteditdate + '</div></div><div class="file-list-item"><div id="'+filekey+filename+'" class="btn btn-danger btn-sm remove-file" data-id="'+filekey+'"><span class="glyphicon glyphicon-trash"></span></div></div></div>');
+                    $("#file-list").append('<div class="file-list-row"><div class="file-list-item col-sm-10">' + '<div id="'+filekey+'" class="file"><a>' + filename + '</a></div><div class="file-date">Last Update: ' + lasteditdate + '</div></div><div class="file-list-item col-sm-2"><div id="'+filekey+filename+'" class="btn btn-danger btn-sm remove-file" data-id="'+filekey+'"><span class="glyphicon glyphicon-trash"></span></div></div></div>');
                     document.getElementById(filekey).addEventListener('click', displaySelectedData, false);
                     document.getElementById(filekey+filename).addEventListener('click', deleteSelectedData, false);
                 }
@@ -177,7 +177,7 @@ $( document ).ready(function() {
         var rowData = [];
         var currentFileName = localStorage.getItem("currentfile");
         var file_id = localStorage.getItem("currentid");
-        $("#ag-grid-header").html('<h4 class="grid-header">Upload Results for '+currentFileName+'</h4>');
+        $("#ag-grid-header").html('<h3 class="grid-header">Upload Results for '+currentFileName+'</h3>');
         for (var i = 0; i < data[0].length; i++) {
             var header = data[0][i];
             columnDefs.push({
@@ -239,7 +239,7 @@ $( document ).ready(function() {
         //Add the row data to the grid
         gridOptions.api.setRowData(rowData);
         //Add save, download, and clear buttons to the grid header and attach their event listeners
-        $("#ag-grid-header").append('<div class="grid-header" id="grid-buttons"><div id="show-graph" class="btn btn-warning buttons"><span class="glyphicon glyphicon-equalizer"></span></div><div id="save" class="btn btn-primary buttons"><span class="glyphicon glyphicon-floppy-disk"></span></div><div id="export" class="btn btn-success buttons"><span class="glyphicon glyphicon-download-alt"></span></div><div id="clear-data" class="btn btn-danger buttons"><span class="glyphicon glyphicon-remove"></span></div></div>');
+        $("#ag-grid-header").append('<div class="grid-header-buttons" id="grid-buttons"><div id="show-graph" class="btn btn-warning buttons"><span class="glyphicon glyphicon-equalizer"></span></div><div id="save" class="btn btn-primary buttons"><span class="glyphicon glyphicon-floppy-disk"></span></div><div id="export" class="btn btn-success buttons"><span class="glyphicon glyphicon-download-alt"></span></div><div id="clear-data" class="btn btn-danger buttons"><span class="glyphicon glyphicon-remove"></span></div></div>');
         document.getElementById('clear-data').addEventListener('click', clearDisplayData, false);
         document.getElementById('export').addEventListener('click', onExport, false);
         document.getElementById('save').addEventListener('click', onSave, false);
@@ -273,7 +273,9 @@ $( document ).ready(function() {
             }
         };
 
-        $('#ag-grid-container').append('<div id="axis-select-container"><div class="col-sm-6"><h4>Choose Which Columns To Graph</h4></div><div class="x-axis-container col-sm-2"><div>X Axis: </div><select name="x-axis" id="x-axis-select"></select></div><div class="y-axis-container col-sm-2"><div>Y Axis: </div><select name="y-axis" id="y-axis-select"></select></div></div><div id="scatter-graph-container"></div>');
+        removeGraph();
+        $('#graph-container').html('<div id="axis-select-container"><div class="col-sm-6"><h4>Choose Which Columns To Graph</h4></div><div class="x-axis-container col-sm-2"><div>X Axis: </div><select name="x-axis" id="x-axis-select"></select></div><div class="y-axis-container col-sm-2"><div>Y Axis: </div><select name="y-axis" id="y-axis-select"></select></div></div><div id="scatter-graph-container"></div>');
+        $('#scatter-graph-container').html('<div id="scatter-plot-container" class="col-xs-12"><div id="scatter-plot" style="min-width: 310px; height: 400px; margin: 0 auto"></div></div>');
 
         db.get(file_id_graph).then(function(response) {
 
@@ -303,6 +305,7 @@ $( document ).ready(function() {
             //Add event listeners for dropdowns
             document.getElementById('x-axis-select').addEventListener('change', setXAxis, false);
             document.getElementById('y-axis-select').addEventListener('change', setYAxis, false);
+
             //Function to set the X Axis and redraw graph
             function setXAxis() {
                 for (var i = 0; i < response.data[0].length; i++) {
@@ -325,8 +328,6 @@ $( document ).ready(function() {
             }
             //Add the Scatter plot to the page with the given configuration options
             function graphChart() {
-
-                $('#scatter-graph-container').html('<div id="scatter-plot-container" class="col-xs-12"><div id="scatter-plot" style="min-width: 310px; height: 400px; margin: 0 auto"></div></div>');
 
                 $('#scatter-plot').highcharts({
                     chart: {
