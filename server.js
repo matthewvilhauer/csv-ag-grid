@@ -2,12 +2,10 @@
 
 //require express in our app
 var express = require('express'),
-    app = express();
+    app = express(),
+    appPort = process.env.PORT || 3000;
 
-// serve static files from public folder
-app.use(express.static(__dirname + '/public'));
-
-app.use('/public', express.static('public'));
+// serve static files from key folders
 app.use('/styles', express.static('styles'));
 app.use('/scripts', express.static('scripts'));
 app.use('/lib', express.static('lib'));
@@ -15,11 +13,6 @@ app.use('/lib', express.static('lib'));
 /**********
  * ROUTES *
  **********/
-
-/*
- * HTML Endpoints
- */
-
 app.get('/', function homepage (req, res) {
   res.sendFile(__dirname + '/views/index.html');
 });
@@ -29,6 +22,6 @@ app.get('/', function homepage (req, res) {
  **********/
 
 // listen on port 3000
-app.listen(process.env.PORT || 3000, function () {
+app.listen(appPort, function () {
   console.log('Express server is running on http://localhost:3000/');
 });

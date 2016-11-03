@@ -7,10 +7,12 @@
     <title>CSV ag-Grid</title>
 
     <!-- APPLICATION SYLES -->
-    <link rel="stylesheet" href="styles/styles.css">
+    <!--@todo: add type= to all of these tags. -->
+    <link  rel="stylesheet" type="text/css" href="styles/styles.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
 
-    <!--3rd Party Scripts-->
+    <!--VENDOR SCRIPTS-->
     <script
             src="https://code.jquery.com/jquery-3.1.1.min.js"
             integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
@@ -21,6 +23,7 @@
             crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <script src="lib/jquery.csv.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script src="lib/ag-grid.js"></script>
     <script src="lib/pouchdb-6.0.7.js"></script>
     <script src="lib/highcharts.js"></script>
@@ -29,32 +32,41 @@
     <script src="scripts/app.js"></script>
 </head>
 <body>
-    <div class="jumbotron">
-        <h1 class="display-3">CSV Editor with ag-Grid</h1>
-        <p class="lead">This is a simple app that allows you to upload a csv and transform, filter, edit, and download the results using ag-Grid.</p>
-    </div>
-    <div class="col-sm-3">
-        <div id="file-upload-container" class="col-sm-12">
-            <h4 class="upload">Upload your CSV File</h4>
-            <div class="upload">
-                <input type="file" name="File Upload" id="txtFileUpload" accept=".csv" />
-            </div>
+    <nav class="navbar navbar-default navbar-fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="#">CSV Editor with ag-Grid & Highcharts</a>
         </div>
-        <div id="file-list-container">
-            <div id="file-list-header">
-                <h4 class="my-files-header">My Files</h4>
-            </div>
-            <div id="file-list">
-            </div>
+    </nav>
+    <div class="row main-content">
+        <!--//@todo look at best-practice on starting a bootstrap simple app. Particularly if the content needs to all be in a container or container-fluid-->
+        <div>
+            <h5 class="description">This is a simple app that allows you to upload a csv and edit, transform, filter, and download the results using ag-Grid. Data is visualized using Highcharts' scatter plot function. </h5>
         </div>
-        <div id="clear-db" class="btn btn-danger buttons">Clear DB</div>
-    </div>
-    <div class="col-sm-9">
-        <div id="ag-grid-container" class="col-xs-12">
-            <div id="ag-grid-header"></div>
-            <div id="ag-grid" class="ag-fresh"></div>
+        <!--@todo: mv. look up bootstrap 4 rules for if a col must always be in a row or container-->
+        <div class="col-md-3">
+            <div class="col-md-12 file-upload-container">
+                <h4 class="upload">Upload your CSV File</h4>
+                <div class="upload">
+                    <input type="file" name="File Upload" id="txt-file-upload" accept=".csv" />
+                </div>
+            </div>
+            <div id="file-list-container" class="col-md-12">
+                <div id="file-list-header">
+                    <h4 class="my-files-header">My Files</h4>
+                </div>
+                <div id="file-list">
+                </div>
+            </div>
+            <div class="col-md-12"><div id="clear-db" class="btn btn-danger buttons" title="Remove all files from the local DB.">Clear DB</div></div>
         </div>
-        <div id="graph-container"></div>
+        <div class="col-md-9">
+            <div id="ag-grid-container" class="col-sm-12">
+                <div id="ag-grid-header"></div>
+                <div id="ag-grid" class="ag-fresh row"></div>
+            </div>
+            <div id="graph-container"></div>
+        </div>
     </div>
+    <footer class="footer"><div class="author">Designed by Matthew Vilhauer</div></footer>
 </body>
 </html>
