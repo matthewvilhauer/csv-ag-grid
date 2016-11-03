@@ -8,6 +8,10 @@
 .col-md-10 {
     padding-right: 0px;
 }
+.main-content {
+    padding-left: 10px;
+    padding-right: 10px;
+}
 /*Upload*/
 
 .upload {
@@ -84,6 +88,12 @@
     margin-bottom: 20px
 }
 /*Graph*/
+
+#scatter-plot {
+    min-width: 310px;
+    height: 400px;
+    margin: 0 auto
+}
 
 #line-graph-header {
     padding-top: 20px;
