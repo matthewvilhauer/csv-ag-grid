@@ -91,7 +91,6 @@ function saveUpload(filename, data) {
         localStorage.setItem("currentfile", upload.filename);
         localStorage.setItem("displaydata", JSON.stringify(upload.data));
         displayLocalData();
-        showGraph();
         renderFileList();
     }).catch(function (error) {
         console.log(error);
@@ -99,12 +98,11 @@ function saveUpload(filename, data) {
 }
 
 /**
- * Method for formatting date/time
+ * Method for formatting date/time as hh:mm MM-DD-YY
  *
  * @param time
  * @returns {string}
  */
-// @todo: as what...
 function formatDate(time) {
     var am_or_pm = "am";
     var hours = time.getHours();
@@ -136,6 +134,8 @@ function renderFileList() {
             localStorage.setItem("currentid", key);
             localStorage.setItem("currentfile", response.filename);
             localStorage.setItem("displaydata", JSON.stringify(response.data));
+            removeAgGrid();
+            removeGraph();
             displayLocalData();
         });
     };

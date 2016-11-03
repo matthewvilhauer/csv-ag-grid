@@ -32,13 +32,16 @@
     <script src="scripts/app.js"></script>
 </head>
 <body>
-    <!--//@todo look at best-practice on starting a bootstrap simple app. Particularly if the content needs to all be in a container or container-fluid-->
-    <div class="jumbotron">
-        <h1 class="display-3">CSV Editor with ag-Grid & Highcharts</h1>
-        <p class="lead">This is a simple app that allows you to upload a csv and edit, transform, filter, and download the results using ag-Grid. Data is visualized using Highcharts' scatter plot function. </p>
-    </div>
-
+    <nav class="navbar navbar-default navbar-fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="#">CSV Editor with ag-Grid & Highcharts</a>
+        </div>
+    </nav>
     <div class="row main-content">
+        <!--//@todo look at best-practice on starting a bootstrap simple app. Particularly if the content needs to all be in a container or container-fluid-->
+        <div>
+            <h5 class="description">This is a simple app that allows you to upload a csv and edit, transform, filter, and download the results using ag-Grid. Data is visualized using Highcharts' scatter plot function. </h5>
+        </div>
         <!--@todo: mv. look up bootstrap 4 rules for if a col must always be in a row or container-->
         <div class="col-md-3">
             <div class="col-md-12 file-upload-container">
@@ -64,6 +67,6 @@
             <div id="graph-container"></div>
         </div>
     </div>
-
+    <footer class="footer"><div class="author">Designed by Matthew Vilhauer</div></footer>
 </body>
 </html>
