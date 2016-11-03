@@ -28,6 +28,9 @@
 #grid-buttons {
     float: right;
 }
+#ag-grid-container {
+    padding-bottom: 20px;
+}
 
 /*File List*/
 
