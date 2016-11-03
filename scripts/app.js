@@ -59,6 +59,7 @@ $( document ).ready(function() {
             localStorage.setItem("currentfile", upload.filename);
             localStorage.setItem("displaydata", JSON.stringify(upload.data));
             displayLocalData();
+            showGraph();
             renderFileList();
         }).catch(function (error) {
             console.log(error);
@@ -219,6 +220,7 @@ $( document ).ready(function() {
             var saveDate = formatDate(new Date());
 
             db.get(file_id).then(function(doc) {
+                localStorage.setItem("displaydata", JSON.stringify(savedData));
                 return db.put({
                     _id: file_id,
                     _rev: doc._rev,
@@ -228,7 +230,8 @@ $( document ).ready(function() {
                 });
             }).then(function(response) {
                 renderFileList();
-                alert("Successfully Saved CSV.");
+                showGraph();
+                // alert("Successfully Saved CSV.");
             }).catch(function(err) {
                 console.log(err);
             })
