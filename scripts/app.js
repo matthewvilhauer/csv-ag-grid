@@ -1,17 +1,38 @@
-$( document ).ready(function() {
+$(document).ready(function() {
+
+    $(document).tooltip();
 
     var db = PouchDB('csv_db');
 
     // Event listeners for the file upload and clear file list button
-    document.getElementById('txtFileUpload').addEventListener('change', upload, false);
+    document.getElementById('txt-file-upload').addEventListener('change', upload, false);
     document.getElementById('clear-db').addEventListener('click', clearDb, false);
+
+    /**
+     *
+     * On Start
+     *
+     **/
+    // @todo: mv. only this execute in the onReady. Others below.
+    renderFileList();
+
+    if (localStorage.getItem("displaydata")) {
+        displayLocalData();
+    }
 
 /**
  *
  * UPLOAD METHODS
  *
  **/
-    // Method that checks that the browser supports the HTML5 File API
+
+
+    /**
+     * Method that checks that the browser supports the HTML5 File API
+     *
+     * @returns {boolean}
+     */
+    // @todo: mv. supports
     function browserSupportFileUpload() {
         var isCompatible = false;
 
@@ -21,7 +42,11 @@ $( document ).ready(function() {
         return isCompatible;
     }
 
-    // Method that reads and processes the selected file
+    /**
+     * Method that reads and processes the selected file
+     * @param evt
+     */
+    // @todo: mv. uploadCSV
     function upload(evt) {
         if (!browserSupportFileUpload()) {
             alert('The File APIs are not fully supported in this browser!');
@@ -43,7 +68,12 @@ $( document ).ready(function() {
         }
     }
 
-    //Method that adds an uploaded file to localStorage and sets the displaydata and currentfile to the uploaded file
+    /**
+     * Method that adds an uploaded file to localStorage and sets the displaydata and currentfile to the uploaded file
+     *
+     * @param {string} filename
+     * @param {object} data
+     */
     function saveUpload(filename, data) {
         var timestamp = new Date().toISOString();
         var upload = {
@@ -66,7 +96,13 @@ $( document ).ready(function() {
         });
     }
 
-    //Method for formatting time
+    /**
+     * Method for formatting date/time
+     *
+     * @param time
+     * @returns {string}
+     */
+    // @todo: as what...
     function formatDate(time) {
         var am_or_pm = "am";
         var hours = time.getHours();
@@ -124,13 +160,14 @@ $( document ).ready(function() {
                     var filekey = allfiles[i].id;
                     var lasteditdate = allfiles[i].doc.lasteditdate;
 
-                    $("#file-list").append('<div class="file-list-row"><div class="file-list-item col-sm-10">' + '<div id="'+filekey+'" class="file"><a>' + filename + '</a></div><div class="file-date">Last Update: ' + lasteditdate + '</div></div><div class="file-list-item col-sm-2"><div id="'+filekey+filename+'" class="btn btn-danger btn-sm remove-file" data-id="'+filekey+'"><span class="glyphicon glyphicon-trash"></span></div></div></div>');
+                    $("#file-list").append('<div class="file-list-row"><div class="file-list-item col-md-9">' + '<div id="'+filekey+'" class="file"><a>' + filename + '</a></div><div class="file-date">Last Update: ' + lasteditdate + '</div></div><div class="file-list-item col-md-2"><div id="'+filekey+filename+'" class="btn btn-danger btn-sm remove-file" title="Remove file from DB" data-id="'+filekey+'"><span class="glyphicon glyphicon-trash"></span></div></div></div>');
                     document.getElementById(filekey).addEventListener('click', displaySelectedData, false);
                     document.getElementById(filekey+filename).addEventListener('click', deleteSelectedData, false);
                 }
             }
-        }).catch(function(err) {
-            console.log("No Files To Retrieve");
+        })
+            .catch(function(err) {
+                console.log("No Files To Retrieve");
         });
     }
 
@@ -151,7 +188,7 @@ $( document ).ready(function() {
     //Method for displaying an new ag-grid using the current localstorage data
     function displayLocalData() {
         var csvData = JSON.parse(localStorage.getItem("displaydata"));
-        removeOldAgGrid();
+        removeAgGrid();
         removeGraph();
         addAgGrid(csvData);
     }
@@ -163,12 +200,12 @@ $( document ).ready(function() {
         $("#clear-data").hide();
         $("#export").hide();
         $("#ag-grid-header").html('');
-        removeOldAgGrid();
+        removeAgGrid();
         removeGraph();
     }
 
     //Method to clear the contents of the grid and its header
-    function removeOldAgGrid() {
+    function removeAgGrid() {
         $("#ag-grid").html('');
     }
 
@@ -178,7 +215,7 @@ $( document ).ready(function() {
         var rowData = [];
         var currentFileName = localStorage.getItem("currentfile");
         var file_id = localStorage.getItem("currentid");
-        $("#ag-grid-header").html('<h3 class="grid-header">Upload Results for '+currentFileName+'</h3>');
+        $("#ag-grid-header").html('<div class="grid-header"><h3>Upload Results for '+currentFileName+'</h3></div>');
         for (var i = 0; i < data[0].length; i++) {
             var header = data[0][i];
             columnDefs.push({
@@ -242,7 +279,18 @@ $( document ).ready(function() {
         //Add the row data to the grid
         gridOptions.api.setRowData(rowData);
         //Add save, download, and clear buttons to the grid header and attach their event listeners
-        $("#ag-grid-header").append('<div class="grid-header-buttons" id="grid-buttons"><div id="show-graph" class="btn btn-warning buttons"><span class="glyphicon glyphicon-equalizer"></span></div><div id="save" class="btn btn-primary buttons"><span class="glyphicon glyphicon-floppy-disk"></span></div><div id="export" class="btn btn-success buttons"><span class="glyphicon glyphicon-download-alt"></span></div><div id="clear-data" class="btn btn-danger buttons"><span class="glyphicon glyphicon-remove"></span></div></div>');
+        var agGridButtonSet = function () {
+            return [
+                '<div class="grid-header-buttons" id="grid-buttons">',
+                    '<div id="show-graph" class="btn btn-warning buttons" title="Show Scatter Plot">',
+                        '<span class="glyphicon glyphicon-equalizer"></span>',
+                    '</div>',
+                    '<div id="save" class="btn btn-primary buttons" title="Save CSV"><span class="glyphicon glyphicon-floppy-disk"></span></div><div id="export" class="btn btn-success buttons" title="Download CSV"><span class="glyphicon glyphicon-download-alt"></span></div><div id="clear-data" class="btn btn-danger buttons" title="Remove Grid"><span class="glyphicon glyphicon-remove"></span>',
+                    '</div>',
+                '</div>'
+            ].join('');
+        };
+        $("#ag-grid-header").append(agGridButtonSet());
         document.getElementById('clear-data').addEventListener('click', clearDisplayData, false);
         document.getElementById('export').addEventListener('click', onExport, false);
         document.getElementById('save').addEventListener('click', onSave, false);
@@ -401,15 +449,4 @@ $( document ).ready(function() {
         $("#scatter-plot-container").html('');
     }
 
-/**
- *
- * On Start
- *
- **/
-
-    renderFileList();
-
-    if (localStorage.getItem("displaydata")) {
-        displayLocalData();
-    }
 });
