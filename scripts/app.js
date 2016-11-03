@@ -114,7 +114,7 @@ function formatDate(time) {
     } else if(hours = 12) {
         am_or_pm = "pm";
     }
-    return hours + ":" + ("0" + time.getMinutes()).slice(-2) + am_or_pm + " " + ("0"+(time.getMonth()+1)).slice(-2)
+    return hours-2 + ":" + ("0" + time.getMinutes()).slice(-2) + am_or_pm + " " + ("0"+(time.getMonth()+1)).slice(-2)
         + "-" + ("0" + time.getDate()).slice(-2) + "-" + ("0" + time.getFullYear()).slice(-2);
 }
 
