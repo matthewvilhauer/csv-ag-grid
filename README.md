@@ -5,11 +5,7 @@ This is a simple app that allows you to upload a csv and edit, transform, filter
 Technologies Used:
 
 Node
-
 Express
-
 csv
-
 ag-Grid
-
 Highcharts
