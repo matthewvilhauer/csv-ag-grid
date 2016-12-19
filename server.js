@@ -9,6 +9,7 @@ var express = require('express'),
 app.use('/styles', express.static('styles'));
 app.use('/scripts', express.static('scripts'));
 app.use('/lib', express.static('lib'));
+app.use('/public', express.static('public'));
 
 /**********
  * ROUTES *
